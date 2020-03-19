@@ -8,6 +8,9 @@ class Puzzle15 :
     
     def getMatrix(self) :
         return self.matrix
+    
+    def getStatus(self) :
+        return self.status
 
     def setStatus(self, status) :
         self.status = status
@@ -39,8 +42,8 @@ class Puzzle15 :
                 if (_matrix[i] > _matrix[j]) :
                     count += 1
         return count
-
-    def findBlankSpace(self) :
+    
+    def rowBlankSpace(self) :
         found = False
         i = 0
         while not found :
@@ -50,6 +53,23 @@ class Puzzle15 :
                     found = True
                 j += 1
             i += 1
+        return i
+    
+    def colBlankSpace(self) :
+        found = False
+        i = 0
+        while not found :
+            j = 0
+            while (j < 4 and not found) :
+                if (self.matrix[i][j] == 16) :
+                    found = True
+                j += 1
+            i += 1
+        return j
+
+    def findBlankSpace(self) :
+        i = self.rowBlankSpace()
+        j = self.colBlankSpace()
         if ((i+j) % 2 == 0):
             return 0
         return 1
@@ -85,14 +105,39 @@ class Puzzle15 :
                     else :
                         print(self.matrix[i][j], end=" ")
             print()
-    def move(self) :
-        if (self.status == "up") :
-
-        elif (self.status == "down") :
-
-        elif (self.status == "left") :
+    
+    def isMoveValid(self) :
+        if (self.getStatus() == "up") :
+            if (self.rowBlankSpace() == 1) :
+                return False
+        elif (self.getStatus() == "down") :
+            if (self.rowBlankSpace() == 4) :
+                return False
+        elif (self.getStatus() == "left") :
+            if (self.colBlankSpace() == 1) :
+                return False
+        elif (self.getStatus() == "right") :
+            if (self.colBlankSpace() == 4) :
+                return False
+        return True
         
-        elif (self.status == "right") :
+
+    def move(self) :
+        if (self.isMoveValid()) :
+            i = self.rowBlankSpace() - 1
+            j = self.colBlankSpace() - 1
+            if (self.status == "up") :
+                self.matrix[i][j] = self.matrix[i-1][j]
+                self.matrix[i-1][j] = 16
+            elif (self.status == "down") :
+                self.matrix[i][j] = self.matrix[i+1][j]
+                self.matrix[i+1][j] = 16
+            elif (self.status == "left") :
+                self.matrix[i][j] = self.matrix[i][j-1]
+                self.matrix[i][j-1] = 16
+            elif (self.status == "right") :
+                self.matrix[i][j] = self.matrix[i][j+1]
+                self.matrix[i][j+1] = 16
     
     def matrixCopy(self, status) :
         res = copy.deepcopy(self)
@@ -104,6 +149,14 @@ class Puzzle15 :
         down = self.matrixCopy("down")
         left = self.matrixCopy("left")
         right = self.matrixCopy("right")
+
+        up.move()
+        down.move()
+        left.move()
+        right.move()
+
+        if (self.getStatus() != "up") :
+            min(down, left, right)
 
 class FileHandler :
     def __init__(self):
