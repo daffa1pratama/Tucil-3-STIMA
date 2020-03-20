@@ -5,6 +5,7 @@ class Puzzle15 :
     def __init__(self) :
         self.matrix = [[-999 for i in range(4)] for i in range(4)]
         self.status = "none"
+        self.container = []
     
     def getMatrix(self) :
         return self.matrix
@@ -144,19 +145,84 @@ class Puzzle15 :
         res.setStatus(status)
         return res
 
+    def isMatrixElm(self, matrix) :
+        for i in range(len(self.container)) :
+            if (matrix == self.container[i]) :
+                return True
+        return False
+
     def solve(self) :
+        if (self.getStatus() == "none") :
+            self.container += [self.matrix]
+
         up = self.matrixCopy("up")
         down = self.matrixCopy("down")
         left = self.matrixCopy("left")
         right = self.matrixCopy("right")
 
-        up.move()
-        down.move()
-        left.move()
-        right.move()
+        countPosUp = 999
+        countPosDown = 999
+        countPosLeft = 999
+        countPosRight = 999
+        
+        if (up.isMoveValid()) :
+            up.move()
+            print("UP")
+            up.printMatrix()
+            if not self.isMatrixElm(up.matrix) :
+                countPosUp = 15 - up.countPosition()
+            self.container += [up.matrix]
+        if (down.isMoveValid()) :
+            down.move()
+            print("DOWN")
+            down.printMatrix()
+            if not self.isMatrixElm(down.matrix) :
+                countPosDown = 15 - down.countPosition()
+            self.container += [down.matrix]
+        if (left.isMoveValid()) :
+            left.move()
+            print("LEFT")
+            left.printMatrix()
+            if not self.isMatrixElm(left.matrix) :
+                countPosLeft = 15 - left.countPosition()
+            self.container += [left.matrix]
+        if (right.isMoveValid()) :
+            right.move()
+            print("RIGHT")
+            right.printMatrix()
+            if not self.isMatrixElm(right.matrix) :
+                countPosRight = 15 - right.countPosition()
+            self.container += [right.matrix]
 
-        if (self.getStatus() != "up") :
-            min(down, left, right)
+        posContainer = [countPosUp, countPosDown, countPosLeft, countPosRight]
+        print(posContainer)
+        minPos = min(posContainer)
+        print(minPos)
+        i = 0
+        found = False
+        while (i < 4 and not found) :
+            if (posContainer[i] == minPos) :
+                found = True
+            else :
+                i += 1
+        print(i)
+        if i == 0 :
+            self.matrix = copy.deepcopy(up.matrix)
+            self.status = up.status
+        elif i == 1 : 
+            self.matrix = copy.deepcopy(down.matrix)
+            self.status = down.status
+        elif i == 2 :
+            self.matrix = copy.deepcopy(left.matrix)
+            self.status = left.status
+        else :
+            self.matrix = copy.deepcopy(right.matrix)
+            self.status = right.status
+
+        # print(self.container)
+        # print(self.matrix)
+        print(self.status)
+        self.printMatrix()
 
 class FileHandler :
     def __init__(self):
@@ -177,6 +243,7 @@ class FileHandler :
             temp += "\n"
         if (puzzle.isSolveable()) :
             temp += "\nSOLVEABLE\n"
+            # puzzle.solve()
         else :
             temp += "\nUNSOLVABLE\n"
         f.write(temp)
@@ -185,7 +252,8 @@ class FileHandler :
 def main() :
     
     bnb = Puzzle15()
-    bnb.randomInput()
+    bnb.manualInput()
+    # bnb.randomInput()
     bnb.printMatrix()
 
     f = FileHandler()
@@ -193,13 +261,13 @@ def main() :
 
     if (bnb.isSolveable()) :
         print("SOLVEABLE")
-        # while (not bnb.isSolution()) :
-        print(bnb.countPosition())
-        bnb.solve()
-
+        while (not bnb.isSolution()) :
+        # for i in range(3) :
+            bnb.solve()
+            print("====================")
+        bnb.printMatrix()
     else :
         print("UNSOLVEABLE")
-
 
 if __name__ == "__main__":
     main()
