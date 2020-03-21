@@ -28,16 +28,28 @@ class Puzzle15 :
                 while any (value in x for x in self.matrix) :
                     value = random.randint(1, 16)
                 self.matrix[i][j] = value
-        
-    def countInverse(self) :
-        count = 0
+    
+    def flattenMatrix(self) :
         _matrix = [-999 for i in range(16)]
         x = 0
         for i in range(4) :
             for j in range(4) :
                 _matrix[x] = self.matrix[i][j]
                 x += 1
+        return _matrix
 
+    def unflattenMatrix(self, matrix) :
+        _matrix = [[-999 for i in range(4)] for i in range(4)]
+        x = 0
+        for i in range(4) :
+            for j in range(4) :
+                _matrix[i][j] = matrix[x]
+                x += 1
+        return _matrix 
+        
+    def countInverse(self) :
+        count = 0
+        _matrix = self.flattenMatrix()
         for i in range(16) :
             for j in range(i+1, 16) :
                 if (_matrix[i] > _matrix[j]) :
@@ -155,7 +167,7 @@ class Puzzle15 :
 
     def solve(self) :
         if (self.getStatus() == "none") :
-            self.container += [self.matrix]
+            self.container.append(self.flattenMatrix())
 
         up = self.matrixCopy("up")
         down = self.matrixCopy("down")
@@ -167,37 +179,42 @@ class Puzzle15 :
         countPosLeft = 999
         countPosRight = 999
         
+        if not(up.isMoveValid() and down.isMoveValid() and left.isMoveValid() and right.isMoveValid()) :
+            temp = self.container.pop()
+            self.matrix = self.unflattenMatrix(temp)
+
         if (up.isMoveValid()) :
             up.move()
             # print("UP")
             # up.printMatrix()
-            if not self.isMatrixElm(up.matrix) :
+            if up.flattenMatrix() not in self.container :
                 countPosUp = 16 - up.countPosition()
-            self.container += [up.matrix]
+                self.container.append(up.flattenMatrix())
         if (down.isMoveValid()) :
             down.move()
             # print("DOWN")
             # down.printMatrix()
-            if not self.isMatrixElm(down.matrix) :
+            if down.flattenMatrix() not in self.container :
                 countPosDown = 16 - down.countPosition()
-            self.container += [down.matrix]
+                self.container.append(down.flattenMatrix())
         if (left.isMoveValid()) :
             left.move()
             # print("LEFT")
             # left.printMatrix()
-            if not self.isMatrixElm(left.matrix) :
+            if left.flattenMatrix() not in self.container :
                 countPosLeft = 16 - left.countPosition()
-            self.container += [left.matrix]
+                self.container.append(left.flattenMatrix())
         if (right.isMoveValid()) :
             right.move()
             # print("RIGHT")
             # right.printMatrix()
-            if not self.isMatrixElm(right.matrix) :
+            if right.flattenMatrix() not in self.container :
                 countPosRight = 16 - right.countPosition()
-            self.container += [right.matrix]
+                self.container.append(right.flattenMatrix())
+
 
         posContainer = [countPosUp, countPosDown, countPosLeft, countPosRight]
-        # print(posContainer)
+        print(posContainer)
         minPos = min(posContainer)
         # print(minPos)
         i = 0
@@ -223,7 +240,7 @@ class Puzzle15 :
 
         # print(self.container)
         # print(self.matrix)
-        # print(self.status)
+        print(self.status)
         self.printMatrix()
 
 class FileHandler :
@@ -254,21 +271,25 @@ class FileHandler :
 def main() :
     
     bnb = Puzzle15()
-    bnb.manualInput()
-    # bnb.randomInput()
+    # bnb.manualInput()
+    bnb.randomInput()
     bnb.printMatrix()
 
     f = FileHandler()
     f.writeFileMatrix(bnb, "matrix.txt")
+
+    countMove = 0
 
     if (bnb.isSolveable()) :
         print("SOLVEABLE")
         while (not bnb.isSolution()) :
         # for i in range(5) :
             bnb.solve()
+            countMove += 1
             print("====================")
         bnb.printMatrix()
         print(bnb.countPosition())
+        print(countMove)
     else :
         print("UNSOLVEABLE")
 
