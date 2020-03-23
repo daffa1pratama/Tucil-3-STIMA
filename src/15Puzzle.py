@@ -4,6 +4,7 @@ import copy
 class Puzzle15 :
     def __init__(self) :
         self.matrix = [[-999 for i in range(4)] for i in range(4)]
+        self.inversion = []
         self.container = []
 
     def manualInput(self) :
@@ -41,9 +42,12 @@ class Puzzle15 :
         count = 0
         _matrix = self.flattenMatrix()
         for i in range(16) :
+            inverseTile = 0
             for j in range(i+1, 16) :
                 if (_matrix[i] > _matrix[j]) :
+                    inverseTile += 1
                     count += 1
+            self.inversion.append(inverseTile)
         return count
     
     def rowBlankSpace(self) :
@@ -104,7 +108,7 @@ class Puzzle15 :
                     print(str(self.matrix[i][j]) + " ", end=" ")
                 else :
                     if (self.matrix[i][j] == 16) :
-                        print(str(0) + " ", end=" ")
+                        print("X ", end=" ")
                     else :
                         print(self.matrix[i][j], end=" ")
             print()
@@ -173,18 +177,32 @@ class FileHandler :
     def __init__(self):
         pass
 
+    def readFileMatrix(self, fileName) :
+        f = open(fileName, "r")
+        temp = f.readlines()
+        matrix = []
+        for item in temp:
+            a = item.strip("\n").split(" ")
+            matrix.append(a)
+        for i in range(4) :
+            for j in range(4) :
+                if matrix[i][j] == 'X' :
+                    matrix[i][j] = 16
+                else :
+                    matrix[i][j] = int(matrix[i][j])
+        puzzle = Puzzle15()
+        puzzle.matrix = matrix
+        return puzzle
+
     def writeFileMatrix(self, puzzle, fileName) :
         f = open(fileName, "w")
         temp = ""
         for i in range(4) :
             for j in range(4) :
-                if (puzzle.matrix[i][j] < 10) :
-                    temp += str(puzzle.matrix[i][j]) + "  "
+                if (puzzle.matrix[i][j] == 16) :
+                    temp += "X  "
                 else :
-                    if (puzzle.matrix[i][j] == 16) :
-                        temp += str(0) + "  "
-                    else :
-                        temp += str(puzzle.matrix[i][j]) + " "
+                    temp += str(puzzle.matrix[i][j])
             temp += "\n"
         if (puzzle.isSolveable()) :
             temp += "\nSOLVEABLE\n"
@@ -196,28 +214,29 @@ class FileHandler :
 
 def main() :
     
-    bnb = Puzzle15()
+    # bnb = Puzzle15()
     # bnb.manualInput()
-    bnb.randomInput()
-    bnb.printMatrix()
+    # bnb.randomInput()
+    # bnb.printMatrix()
 
     f = FileHandler()
-    f.writeFileMatrix(bnb, "matrix.txt")
+    # f.writeFileMatrix(bnb, "..\doc\matrix.txt")
+    puzzle = f.readFileMatrix("..\doc\matrix.txt")
+    puzzle.printMatrix()
+    # countMove = 0
 
-    countMove = 0
-
-    if (bnb.isSolveable()) :
-        print("SOLVEABLE")
-        # while (not bnb.isSolution()) :
-        # for i in range(5) :
-        bnb.solve()
-            # countMove += 1
-            # print("====================")
-        # bnb.printMatrix()
-        # print(bnb.countPosition(bnb.matrix))
-        # print(countMove)
-    else :
-        print("UNSOLVEABLE")
+    # if (bnb.isSolveable()) :
+    #     print("SOLVEABLE")
+    #     # while (not bnb.isSolution()) :
+    #     # for i in range(5) :
+    #     bnb.solve()
+    #         # countMove += 1
+    #         # print("====================")
+    #     # bnb.printMatrix()
+    #     # print(bnb.countPosition(bnb.matrix))
+    #     # print(countMove)
+    # else :
+    #     print("UNSOLVEABLE")
 
 if __name__ == "__main__":
     main()
