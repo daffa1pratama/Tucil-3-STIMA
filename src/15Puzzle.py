@@ -20,12 +20,12 @@ class Puzzle15 :
                     value = random.randint(1, 16)
                 self.matrix[i][j] = value
     
-    def flattenMatrix(self) :
+    def flattenMatrix(self, matrix) :
         _matrix = [-999 for i in range(16)]
         x = 0
         for i in range(4) :
             for j in range(4) :
-                _matrix[x] = self.matrix[i][j]
+                _matrix[x] = matrix[i][j]
                 x += 1
         return _matrix
 
@@ -40,14 +40,16 @@ class Puzzle15 :
         
     def countInverse(self) :
         count = 0
-        _matrix = self.flattenMatrix()
+        _matrix = self.flattenMatrix(self.matrix)
         for i in range(16) :
             inverseTile = 0
             for j in range(i+1, 16) :
                 if (_matrix[i] > _matrix[j]) :
                     inverseTile += 1
                     count += 1
-            self.inversion.append(inverseTile)
+            self.inversion.append([_matrix[i], inverseTile])
+        inversion = self.inversion
+        inversion.sort(key = lambda inversion: inversion[0])
         return count
     
     def rowBlankSpace(self) :
@@ -112,6 +114,14 @@ class Puzzle15 :
                     else :
                         print(self.matrix[i][j], end=" ")
             print()
+
+    def printInverse(self) :
+        for i in range(16) :
+            print(str(i+1) + " : " + str(self.inversion[i][1]))
+        inverse = self.countInverse()
+        print("Total : " + str(inverse))
+        print("sigma KURANG(i) + X = " + str(inverse + self.findBlankSpace()))
+
     
     def isMoveValid(self, matrix) :
         if (matrix[1] == 'up') :
@@ -153,13 +163,25 @@ class Puzzle15 :
         left = [copy.deepcopy(self.matrix), 'left']
         right = [copy.deepcopy(self.matrix), 'right']
 
-        self.move(up)
-        self.move(down)
-        self.move(left)
-        self.move(right)
+        if (flatUp not in self.container) :
+            self.move(up)
+            self.container.append(flatUp)
+        elif (flatDown not in self.container) :
+            self.move(down)
+            self.container.append(flatDown)
+        elif (flatLeft not in self.container) :
+            self.move(left)
+            self.container.append(flatLeft)
+        elif (flatRight not in self.container) :
+            self.move(right)
+            self.container.append(flatRight)
+        print("ini history:::::::")
+        print(self.container)
 
         print(up)
         print(down)
+        print(left)
+        print(right)
 
         posUp = 16 - self.countPosition(up[0])
         posDown = 16 - self.countPosition(down[0])
@@ -167,9 +189,23 @@ class Puzzle15 :
         posRight = 16 - self.countPosition(right[0])
 
         posContainer = [posUp, posDown, posLeft, posRight]
-        print(posContainer)
+        # print(posContainer)
         minpos = min(posContainer)
-        print(minpos)
+        # print(minpos)
+        for i in range(4) :
+            if (posContainer[i] == minpos) :
+                if (i == 0) :
+                    self.matrix = copy.deepcopy(up[0])
+                elif (i == 1) :
+                    self.matrix = copy.deepcopy(down[0])
+                elif (i == 2) :
+                    self.matrix == copy.deepcopy(left[0])
+                else :
+                    self.matrix == copy.deepcopy(right[0])
+                break
+            else :
+                continue
+
 
 
 
@@ -206,37 +242,33 @@ class FileHandler :
             temp += "\n"
         if (puzzle.isSolveable()) :
             temp += "\nSOLVEABLE\n"
-            # puzzle.solve()
         else :
             temp += "\nUNSOLVABLE\n"
         f.write(temp)
         f.close()
 
 def main() :
-    
-    # bnb = Puzzle15()
-    # bnb.manualInput()
-    # bnb.randomInput()
-    # bnb.printMatrix()
 
     f = FileHandler()
-    # f.writeFileMatrix(bnb, "..\doc\matrix.txt")
-    puzzle = f.readFileMatrix("..\doc\matrix.txt")
+    # f.writeFileMatrix(bnb, "../doc/matrix.txt")
+    puzzle = f.readFileMatrix("../doc/matrix.txt")
+    print("===== BOARD =====")
     puzzle.printMatrix()
-    # countMove = 0
-
-    # if (bnb.isSolveable()) :
-    #     print("SOLVEABLE")
-    #     # while (not bnb.isSolution()) :
-    #     # for i in range(5) :
-    #     bnb.solve()
-    #         # countMove += 1
-    #         # print("====================")
-    #     # bnb.printMatrix()
-    #     # print(bnb.countPosition(bnb.matrix))
-    #     # print(countMove)
-    # else :
-    #     print("UNSOLVEABLE")
+    print("=================")
+    print("=== KURANG(i) ===")
+    if (puzzle.isSolveable()) :
+        puzzle.printInverse()
+        print("puzzle is ... SOLVEABLE")
+        print("=================")
+        puzzle.container.append(puzzle.flattenMatrix(puzzle.matrix))
+        # while (not puzzle.isSolution()) :
+        for i in range(5) :
+            puzzle.solve()
+    else :
+        puzzle.printInverse()
+        print("puzzle is ... UNSOLVEABLE")
+        print("=================")
+    
 
 if __name__ == "__main__":
     main()

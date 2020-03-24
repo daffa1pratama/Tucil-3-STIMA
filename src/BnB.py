@@ -282,12 +282,13 @@ def main() :
 
     if (bnb.isSolveable()) :
         print("SOLVEABLE")
-        while (not bnb.isSolution()) :
-        # for i in range(5) :
+        # while (not bnb.isSolution()) :
+        for i in range(5) :
             bnb.solve()
             countMove += 1
             print("====================")
         bnb.printMatrix()
+        print(bnb.container)
         print(bnb.countPosition())
         print(countMove)
     else :
