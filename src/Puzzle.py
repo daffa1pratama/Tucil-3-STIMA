@@ -1,24 +1,17 @@
 import random
 import copy
+import time
 
+# Kelas Puzzle15 Solver
 class Puzzle15 :
+    # Constructor
     def __init__(self) :
         self.matrix = [[-999 for i in range(4)] for i in range(4)]
         self.inversion = []
-        self.container = []
-
-    def manualInput(self) :
-        for i in range(4) :
-            for j in range(4) :
-                self.matrix[i][j] = int(input())
-
-    def randomInput(self) :
-        for i in range(4) :
-            for j in range(4) :  
-                value = random.randint(1, 16)
-                while any (value in x for x in self.matrix) :
-                    value = random.randint(1, 16)
-                self.matrix[i][j] = value
+        self.container = {}
+        self.queue = []
+        self.depth = 0
+        self.path = ""
     
     def flattenMatrix(self, matrix) :
         _matrix = [-999 for i in range(16)]
@@ -156,58 +149,68 @@ class Puzzle15 :
                 matrix[0][i][j] = matrix[0][i][j+1]
                 matrix[0][i][j+1] = 16
         return matrix
+    
+    def evalPath(self) :
+        currPath = self.path.pop(0)
+        if (currPath == 'w') :
+            self.move([self.matrix, 'up'])
+            print("Up")
+        elif (currPath == 's') :
+            self.move([self.matrix, 'down'])
+            print("Down")
+        elif (currPath == 'a') :
+            self.move([self.matrix, 'left'])
+            print("Left")
+        elif (currPath == 'd') :
+            self.move([self.matrix, 'right'])
+            print("Right")
+        else :
+            pass
 
     def solve(self) :
+        posUp = 999
+        posDown = 999
+        posLeft = 999
+        posRight = 999
+
         up = [copy.deepcopy(self.matrix), 'up']
         down = [copy.deepcopy(self.matrix), 'down']
         left = [copy.deepcopy(self.matrix), 'left']
         right = [copy.deepcopy(self.matrix), 'right']
 
-        if (self.flattenMatrix(up) not in self.container) :
-            self.move(up)
-            self.container.append(self.flattenMatrix(up))
-        elif (self.flattenMatrix(down) not in self.container) :
-            self.move(down)
-            self.container.append(self.flattenMatrix(down))
-        elif (self.flattenMatrix(left) not in self.container) :
-            self.move(left)
-            self.container.append(self.flattenMatrix(left))
-        elif (self.flattenMatrix(right) not in self.container) :
-            self.move(right)
-            self.container.append(self.flattenMatrix(right))
-        print("ini history:::::::")
-        print(self.container)
+        self.move(up)
+        self.move(down)
+        self.move(left)
+        self.move(right)
 
-        print(up)
-        print(down)
-        print(left)
-        print(right)
+        self.depth += 1
+        # print("Depth : " + str(self.depth))
+        
+        if (tuple(self.flattenMatrix(up[0])) not in self.container) :
+            posUp = 16 - self.countPosition(up[0]) + self.depth
+            self.container[tuple(self.flattenMatrix(up[0]))] = 'up'
+            self.queue.append([posUp, self.depth, self.path + 'w ', self.flattenMatrix(up[0])])
 
-        posUp = 16 - self.countPosition(up[0])
-        posDown = 16 - self.countPosition(down[0])
-        posLeft = 16 - self.countPosition(left[0])
-        posRight = 16 - self.countPosition(right[0])
+        if (tuple(self.flattenMatrix(down[0])) not in self.container) :
+            posDown = 16 - self.countPosition(down[0]) + self.depth
+            self.container[tuple(self.flattenMatrix(down[0]))] = 'down'
+            self.queue.append([posDown, self.depth, self.path + 's ', self.flattenMatrix(down[0])])
+            
+        if (tuple(self.flattenMatrix(left[0])) not in self.container) :
+            posLeft = 16 - self.countPosition(left[0]) + self.depth
+            self.container[tuple(self.flattenMatrix(left[0]))] = 'left'
+            self.queue.append([posLeft, self.depth, self.path + 'a ', self.flattenMatrix(left[0])])
 
-        posContainer = [posUp, posDown, posLeft, posRight]
-        # print(posContainer)
-        minpos = min(posContainer)
-        # print(minpos)
-        for i in range(4) :
-            if (posContainer[i] == minpos) :
-                if (i == 0) :
-                    self.matrix = copy.deepcopy(up[0])
-                elif (i == 1) :
-                    self.matrix = copy.deepcopy(down[0])
-                elif (i == 2) :
-                    self.matrix == copy.deepcopy(left[0])
-                else :
-                    self.matrix == copy.deepcopy(right[0])
-                break
-            else :
-                continue
-
-
-
+        if (tuple(self.flattenMatrix(right[0])) not in self.container) :
+            posRight = 16 - self.countPosition(right[0]) + self.depth
+            self.container[tuple(self.flattenMatrix(right[0]))] = 'right'
+            self.queue.append([posRight, self.depth, self.path + 'd ', self.flattenMatrix(right[0])])
+            
+        self.queue.sort()
+        pop = self.queue.pop(0)
+        self.matrix = self.unflattenMatrix(pop[3])
+        self.depth = pop[1]
+        self.path = pop[2]
 
 class FileHandler :
     def __init__(self):
@@ -230,20 +233,44 @@ class FileHandler :
         puzzle.matrix = matrix
         return puzzle
 
-    def writeFileMatrix(self, puzzle, fileName) :
-        f = open(fileName, "w")
-        temp = ""
-        for i in range(4) :
-            for j in range(4) :
-                if (puzzle.matrix[i][j] == 16) :
-                    temp += "X  "
-                else :
-                    temp += str(puzzle.matrix[i][j])
-            temp += "\n"
+def main() :
+    print("=== 15 PUZZLE SOLVER ===")
+    dir = input("Masukkan nama file (diakhiri .txt) : ")
+    try :
+        f = FileHandler()
+        puzzle = f.readFileMatrix("../doc/" + dir)
+        start = time.time()
+        print("===== BOARD =====")
+        puzzle.printMatrix()
+        print("=================")
+        print("=== KURANG(i) ===")
         if (puzzle.isSolveable()) :
-            temp += "\nSOLVEABLE\n"
-        else :
-            temp += "\nUNSOLVABLE\n"
-        f.write(temp)
-        f.close()
+            puzzle.printInverse()
+            print("puzzle is ... SOLVEABLE")
+            print("=================")
+            print("===== SOLVE =====")
+            temp = copy.deepcopy(puzzle)
+            puzzle.container[tuple(puzzle.flattenMatrix(puzzle.matrix))] = 'none'
+            step = 0
+            while (not puzzle.isSolution()) :
+                puzzle.solve()
+                step += 1
 
+            temp.path = puzzle.path.split(" ")
+            while (len(temp.path) != 1) :
+                temp.evalPath()
+                temp.printMatrix()
+                print("=================")
+            print("=== END SOLVE ===")
+            
+        else :
+            puzzle.printInverse()
+            print("puzzle is ... NOT SOLVEABLE")
+            print("=================")
+        end = time.time()
+        print("Elapsed time : " + str(end-start) + " seconds")
+    except :
+        print("Error expected : File not found")
+
+if __name__ == "__main__":
+    main()
