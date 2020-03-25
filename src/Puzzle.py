@@ -163,18 +163,18 @@ class Puzzle15 :
         left = [copy.deepcopy(self.matrix), 'left']
         right = [copy.deepcopy(self.matrix), 'right']
 
-        if (flatUp not in self.container) :
+        if (self.flattenMatrix(up) not in self.container) :
             self.move(up)
-            self.container.append(flatUp)
-        elif (flatDown not in self.container) :
+            self.container.append(self.flattenMatrix(up))
+        elif (self.flattenMatrix(down) not in self.container) :
             self.move(down)
-            self.container.append(flatDown)
-        elif (flatLeft not in self.container) :
+            self.container.append(self.flattenMatrix(down))
+        elif (self.flattenMatrix(left) not in self.container) :
             self.move(left)
-            self.container.append(flatLeft)
-        elif (flatRight not in self.container) :
+            self.container.append(self.flattenMatrix(left))
+        elif (self.flattenMatrix(right) not in self.container) :
             self.move(right)
-            self.container.append(flatRight)
+            self.container.append(self.flattenMatrix(right))
         print("ini history:::::::")
         print(self.container)
 
@@ -247,28 +247,3 @@ class FileHandler :
         f.write(temp)
         f.close()
 
-def main() :
-
-    f = FileHandler()
-    # f.writeFileMatrix(bnb, "../doc/matrix.txt")
-    puzzle = f.readFileMatrix("../doc/matrix.txt")
-    print("===== BOARD =====")
-    puzzle.printMatrix()
-    print("=================")
-    print("=== KURANG(i) ===")
-    if (puzzle.isSolveable()) :
-        puzzle.printInverse()
-        print("puzzle is ... SOLVEABLE")
-        print("=================")
-        puzzle.container.append(puzzle.flattenMatrix(puzzle.matrix))
-        # while (not puzzle.isSolution()) :
-        for i in range(5) :
-            puzzle.solve()
-    else :
-        puzzle.printInverse()
-        print("puzzle is ... UNSOLVEABLE")
-        print("=================")
-    
-
-if __name__ == "__main__":
-    main()
