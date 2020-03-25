@@ -1,11 +1,15 @@
 import random
 import copy
+import time
+from queue import Queue
 
 class Puzzle15 :
     def __init__(self) :
         self.matrix = [[-999 for i in range(4)] for i in range(4)]
         self.inversion = []
         self.container = []
+        self.queue = []
+        self.depth = 0
 
     def manualInput(self) :
         for i in range(4) :
@@ -158,56 +162,51 @@ class Puzzle15 :
         return matrix
 
     def solve(self) :
+        posUp = 999
+        posDown = 999
+        posLeft = 999
+        posRight = 999
+
         up = [copy.deepcopy(self.matrix), 'up']
         down = [copy.deepcopy(self.matrix), 'down']
         left = [copy.deepcopy(self.matrix), 'left']
         right = [copy.deepcopy(self.matrix), 'right']
 
-        if (flatUp not in self.container) :
-            self.move(up)
-            self.container.append(flatUp)
-        elif (flatDown not in self.container) :
-            self.move(down)
-            self.container.append(flatDown)
-        elif (flatLeft not in self.container) :
-            self.move(left)
-            self.container.append(flatLeft)
-        elif (flatRight not in self.container) :
-            self.move(right)
-            self.container.append(flatRight)
-        print("ini history:::::::")
-        print(self.container)
+        self.move(up)
+        self.move(down)
+        self.move(left)
+        self.move(right)
 
-        print(up)
-        print(down)
-        print(left)
-        print(right)
+        self.depth += 1
+        print("Depth : " + str(self.depth))
 
-        posUp = 16 - self.countPosition(up[0])
-        posDown = 16 - self.countPosition(down[0])
-        posLeft = 16 - self.countPosition(left[0])
-        posRight = 16 - self.countPosition(right[0])
+        if (self.flattenMatrix(up[0]) not in self.container) :
+            posUp = 16 - self.countPosition(up[0]) + self.depth
+            self.container.append(self.flattenMatrix(up[0]))
+            self.queue.append([posUp, self.depth, self.flattenMatrix(up[0])])
 
-        posContainer = [posUp, posDown, posLeft, posRight]
-        # print(posContainer)
-        minpos = min(posContainer)
-        # print(minpos)
-        for i in range(4) :
-            if (posContainer[i] == minpos) :
-                if (i == 0) :
-                    self.matrix = copy.deepcopy(up[0])
-                elif (i == 1) :
-                    self.matrix = copy.deepcopy(down[0])
-                elif (i == 2) :
-                    self.matrix == copy.deepcopy(left[0])
-                else :
-                    self.matrix == copy.deepcopy(right[0])
-                break
-            else :
-                continue
+        if (self.flattenMatrix(down[0]) not in self.container) :
+            posDown = 16 - self.countPosition(down[0]) + self.depth
+            self.container.append(self.flattenMatrix(down[0]))
+            self.queue.append([posDown, self.depth, self.flattenMatrix(down[0])])
+            
+        if (self.flattenMatrix(left[0]) not in self.container) :
+            posLeft = 16 - self.countPosition(left[0]) + self.depth
+            self.container.append(self.flattenMatrix(left[0]))
+            self.queue.append([posLeft, self.depth, self.flattenMatrix(left[0])])
 
+        if (self.flattenMatrix(right[0]) not in self.container) :
+            posRight = 16 - self.countPosition(right[0]) + self.depth
+            self.container.append(self.flattenMatrix(right[0]))
+            self.queue.append([posRight, self.depth, self.flattenMatrix(right[0])])
 
-
+        self.queue.sort()
+        pop = self.queue.pop(0)
+        self.matrix = self.unflattenMatrix(pop[2])
+        self.depth = pop[1]
+        # print(self.matrix)
+        # print(self.matrix)
+        self.printMatrix()
 
 class FileHandler :
     def __init__(self):
@@ -252,6 +251,7 @@ def main() :
     f = FileHandler()
     # f.writeFileMatrix(bnb, "../doc/matrix.txt")
     puzzle = f.readFileMatrix("../doc/matrix.txt")
+    start = time.time()
     print("===== BOARD =====")
     puzzle.printMatrix()
     print("=================")
@@ -260,15 +260,23 @@ def main() :
         puzzle.printInverse()
         print("puzzle is ... SOLVEABLE")
         print("=================")
+        print("===== SOLVE =====")
         puzzle.container.append(puzzle.flattenMatrix(puzzle.matrix))
-        # while (not puzzle.isSolution()) :
-        for i in range(5) :
+        step = 0
+        while (not puzzle.isSolution()) :
+        # for i in range(20) :
             puzzle.solve()
+            step += 1
+            print("=================")
+        print(step)
+        print("=== END SOLVE ===")
+        
     else :
         puzzle.printInverse()
         print("puzzle is ... UNSOLVEABLE")
         print("=================")
-    
+    end = time.time()
+    print("Elapsed time : " + str(end-start))
 
 if __name__ == "__main__":
     main()
