@@ -1,4 +1,3 @@
-import random
 import copy
 import time
 
@@ -13,6 +12,7 @@ class Puzzle15 :
         self.depth = 0
         self.path = ""
     
+    # Convert 2D matrix to 1D matrix
     def flattenMatrix(self, matrix) :
         _matrix = [-999 for i in range(16)]
         x = 0
@@ -22,6 +22,7 @@ class Puzzle15 :
                 x += 1
         return _matrix
 
+    # Convert 1D matrix to 2D matrix
     def unflattenMatrix(self, matrix) :
         _matrix = [[-999 for i in range(4)] for i in range(4)]
         x = 0
@@ -30,7 +31,8 @@ class Puzzle15 :
                 _matrix[i][j] = matrix[x]
                 x += 1
         return _matrix 
-        
+    
+    # Count inversion of matrix (A[i] > A[j] and i < j)
     def countInverse(self) :
         count = 0
         _matrix = self.flattenMatrix(self.matrix)
@@ -45,6 +47,7 @@ class Puzzle15 :
         inversion.sort(key = lambda inversion: inversion[0])
         return count
     
+    # Find row of blank space (X)
     def rowBlankSpace(self) :
         found = False
         i = 0
@@ -57,6 +60,7 @@ class Puzzle15 :
             i += 1
         return i
     
+    # Find column of blank space (X)
     def colBlankSpace(self) :
         found = False
         i = 0
@@ -69,6 +73,7 @@ class Puzzle15 :
             i += 1
         return j
 
+    # Find coordinate of blank space is odd or even
     def findBlankSpace(self) :
         i = self.rowBlankSpace()
         j = self.colBlankSpace()
@@ -76,16 +81,19 @@ class Puzzle15 :
             return 0
         return 1
 
+    # Check matrix is solveable or not
     def isSolveable(self) :
         if ((self.countInverse() + self.findBlankSpace()) % 2 == 0) :
             return True
         return False
 
+    # Check matrix is a goal matrix or not
     def isSolution(self) :
         if (self.countPosition(self.matrix) != 16) :
             return False
         return True
     
+    # Count correct position of matrix
     def countPosition(self, matrix) :
         count = 0;
         ctr = 1;
@@ -96,6 +104,7 @@ class Puzzle15 :
                 ctr += 1
         return count
 
+    # Print matrix to screen
     def printMatrix(self) :
         for i in range(4) :
             for j in range(4) :
@@ -108,6 +117,7 @@ class Puzzle15 :
                         print(self.matrix[i][j], end=" ")
             print()
 
+    # Print inversion of matrix
     def printInverse(self) :
         for i in range(16) :
             print(str(i+1) + " : " + str(self.inversion[i][1]))
@@ -115,7 +125,7 @@ class Puzzle15 :
         print("Total : " + str(inverse))
         print("sigma KURANG(i) + X = " + str(inverse + self.findBlankSpace()))
 
-    
+    # Check move is valid or not
     def isMoveValid(self, matrix) :
         if (matrix[1] == 'up') :
             if (self.rowBlankSpace() == 1) :
@@ -131,7 +141,7 @@ class Puzzle15 :
                 return False
         return True
          
-
+    # Move blank space
     def move(self, matrix) :
         i = self.rowBlankSpace() - 1
         j = self.colBlankSpace() - 1
@@ -150,6 +160,7 @@ class Puzzle15 :
                 matrix[0][i][j+1] = 16
         return matrix
     
+    # Evaluate path to goal node
     def evalPath(self) :
         currPath = self.path.pop(0)
         if (currPath == 'w') :
@@ -167,6 +178,8 @@ class Puzzle15 :
         else :
             pass
 
+    # Solve method using branc n bound algorithm
+    # THE CORE IS HERE
     def solve(self) :
         posUp = 999
         posDown = 999
@@ -184,7 +197,6 @@ class Puzzle15 :
         self.move(right)
 
         self.depth += 1
-        # print("Depth : " + str(self.depth))
         
         if (tuple(self.flattenMatrix(up[0])) not in self.container) :
             posUp = 16 - self.countPosition(up[0]) + self.depth
@@ -212,10 +224,13 @@ class Puzzle15 :
         self.depth = pop[1]
         self.path = pop[2]
 
+# Class File Handler
 class FileHandler :
+    # Constructor
     def __init__(self):
         pass
-
+    
+    # Read matrix from external file
     def readFileMatrix(self, fileName) :
         f = open(fileName, "r")
         temp = f.readlines()
@@ -233,17 +248,26 @@ class FileHandler :
         puzzle.matrix = matrix
         return puzzle
 
+# Main program here
 def main() :
+    # Title
     print("=== 15 PUZZLE SOLVER ===")
+    # Input filename from user
     dir = input("Masukkan nama file (diakhiri .txt) : ")
+
     try :
+        # Read external file
         f = FileHandler()
         puzzle = f.readFileMatrix("../doc/" + dir)
+        # Starting time
         start = time.time()
+        # Initial matrix
         print("===== BOARD =====")
         puzzle.printMatrix()
         print("=================")
+        # Check solveability
         print("=== KURANG(i) ===")
+        # If matrix solve, then solve 'em
         if (puzzle.isSolveable()) :
             puzzle.printInverse()
             print("puzzle is ... SOLVEABLE")
@@ -262,7 +286,8 @@ def main() :
                 temp.printMatrix()
                 print("=================")
             print("=== END SOLVE ===")
-            
+            print("Jumlah simpul dibangkitkan : " + str(len(puzzle.container) - 1))
+        # Else just print inversion
         else :
             puzzle.printInverse()
             print("puzzle is ... NOT SOLVEABLE")
@@ -270,6 +295,7 @@ def main() :
         end = time.time()
         print("Elapsed time : " + str(end-start) + " seconds")
     except :
+        # Error file not found
         print("Error expected : File not found")
 
 if __name__ == "__main__":
